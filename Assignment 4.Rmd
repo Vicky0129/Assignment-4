@@ -1,0 +1,166 @@
+---
+title: "| Assignment 4: Collaborating Together\n| Introduction to Applied Data Science\n|
+  2022-2023\n"
+author: "|"
+  | Your Name:Jingwen Zhu
+  | your_email: j.zhu1@students.uu.nl
+  | http://www.github.com/Vicky0129
+date: "July 2023"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+linkcolor: purple
+urlcolor: purple
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, error=TRUE)
+```
+
+## Assignment 4: Collaborating Together 
+
+### Part 1: Contributing to another student's Github repository
+
+In this assignment, you will create a Github repository, containing this document and the .pdf output, which analyzes a dataset individually using some of the tools we have developed. 
+
+This time, make sure to not only put your name and student e-mail in your Rmarkdown header, but also your Github account, as I have done myself. 
+
+However, you will also pair up with a class mate and contribute to each others' Github repository. Each student is supposed to contribute to another student's work by writing a short interpretation of 1 or 2 sentences at the designated place (this place is marked with **designated place**) in the other student's assignment. 
+
+This interpretation will not be graded, but a Github shows the contributors to a certain repository. This way, we can see whether you have contributed to a repository of a class mate. 
+
+**Question 1.1**: Fill in the Github name of the class mate to whose repository you have contributed. 
+
+Murphyyork
+
+### Part 2: Analyzing various linear models
+
+In this part, we will summarize a dataset and create a couple of customized tables. Then, we will compare a couple of linear models to each other, and see which linear model fits the data the best, and yields the most interesting results.
+
+We will use a dataset called `GrowthSW` from the `AER` package. This is a dataset containing 65 observations on 6 variables and investigates the determinants of economic growt
+h. First, we will try to summarize the data using the `modelsummary` package. 
+
+```{r, warning=FALSE, message=FALSE}
+library(AER)
+data(GrowthSW)
+```
+
+One of the variables in the dataset is `revolutions`, the number of revolutions, insurrections and coup d'etats in country $i$ from 1965 to 1995.
+
+**Question 2.1**: Using the function `datasummary`, summarize the mean, median, sd, min, and max of the variables `growth`, and `rgdp60` between two groups: countries with `revolutions` equal to 0, and countries with more than 0 revolutions. Call this variable `treat`. Make sure to also write the resulting data set to memory. Hint: you can check some examples [here](https://vincentarelbundock.github.io/modelsummary/articles/datasummary.html#datasummary).
+
+```{r}
+library(modelsummary); library(tidyverse)
+
+# Create a new variable "treat" to indicate whether the country has 0 or more than 0 revolutions
+GrowthSW$treat <- ifelse(GrowthSW$revolutions == 0, "0 revolutions", "> 0 revolutions")
+
+# Summarize the variables "growth" and "rgdp60" using datasummary
+summary_table <- datasummary(
+  growth + rgdp60 ~ Factor(treat) * (Mean + Median + SD + Min + Max), 
+  data = GrowthSW
+)
+summary_table
+
+```
+
+
+**Designated place**: type one or two sentences describing this table of a fellow student below. For example, comment on the mean and median growth of both groups. Then stage, commit and push it to their github repository. 
+
+Based on the table, countries with 0 revolutions have, on average, lower economic growth (mean = 1.68) than countries with more than 0 revolutions (mean = 2.46). However, countries with 0 revolutions exhibit a wider range of economic growth rates (SD = 2.11) compared to countries with more than 0 revolutions (SD = 1.28). The median growth rates also reflect this trend, with countries having more than 0 revolutions showing a slightly higher median growth rate.
+
+For the rgdp60 variable, both the mean and median are significantly higher for countries with more than 0 revolutions, suggesting these countries had higher real GDP per capita in 1960. However, the standard deviation for countries with 0 revolutions is significantly lower, implying that there's less dispersion in the rgdp60 values for these countries.
+
+This data suggests that while political instability might be associated with higher average economic growth, the range of growth rates in these countries is narrower. Conversely, countries with no recorded revolutions during this time period demonstrate a wider range of growth rates but lower average growth.
+
+### Part 3: Make a table summarizing reressions using modelsummary and kable
+
+In question 2, we have seen that growth rates differ markedly between countries that experienced at least one revolution/episode of political stability and countries that did not. 
+
+**Question 3.1**: Try to make this more precise this by performing a t-test on the variable growth according to the group variable you have created in the previous question. 
+
+```{r}
+# write t test here
+t_test <- t.test(growth ~ treat, data = GrowthSW)
+t_test
+
+```
+
+**Question 3.2**: What is the $p$-value of the test, and what does that mean? Write down your answer below.
+
+The $p$-value is the probability of obtaining the observed data or more extreme data if the original hypothesis (usually "no effect" or "no difference") is true.
+
+In general, if the $p$-value is less than a set significance level (usually 0.05), we reject the original hypothesis and consider the result to be statistically significant, i.e., the observed effect is unlikely to be caused by random variation alone. Conversely, if the $p$-value is greater than the set significance level, we cannot reject the original hypothesis, i.e., we do not have sufficient evidence to support that the observed effect is actually present and is not merely the result of random variation.
+
+In this example, the $p$-value is 0.06871, which is greater than the usual significance level of 0.05, so we cannot reject the original hypothesis, i.e., we cannot assert that there is a difference in the true mean between the "> 0 revolutions" and "0 revolutions" groups.
+
+
+We can also control for other factors by including them in a linear model, for example:
+
+$$
+\text{growth}_i = \beta_0 + \beta_1 \cdot \text{treat}_i + \beta_2 \cdot \text{rgdp60}_i + \beta_3 \cdot \text{tradeshare}_i + \beta_4 \cdot \text{education}_i + \epsilon_i
+$$
+
+
+**Question 3.3**: What do you think the purpose of including the variable `rgdp60` is? Look at `?GrowthSW` to find out what the variables mean. 
+
+The variable rgdp60 probably represents the real GDP per capita in 1960. Including this variable in the model allows us to control for the initial economic status of the countries. It's often necessary to control for such variables to isolate the impact of the treatment (treat).
+
+We now want to estimate a stepwise model. Stepwise means that we first estimate a univariate regression $\text{growth}_i = \beta_0 + \beta_1 \cdot \text{treat}_i + \epsilon_i$, and in each subsequent model, we add one control variable. 
+
+**Question 3.4**: Write four models, titled `model1`, `model2`, `model3`, `model4` (using the `lm` function) to memory. Hint: you can also use the `update` function to add variables to an already existing specification.
+
+```{r}
+
+model1 <- lm(growth ~ treat, data = GrowthSW)
+model2 <- update(model1, . ~ . + rgdp60)
+model3 <- update(model2, . ~ . + tradeshare)
+model4 <- update(model3, . ~ . + education)
+
+
+```
+
+Now, we put the models in a list, and see what `modelsummary` gives us:
+
+```{r}
+
+list(model1, model2, model3, model4) |>
+  modelsummary(stars=T,
+               gof_map = c("nobs", "r.squared")
+# edit this to remove the statistics other than R-squared
+# and N
+) 
+
+
+```
+
+**Question 3.5**: Edit the code chunk above to remove many statistics from the table, but keep only the number of observations $N$, and the $R^2$ statistic. 
+
+**Question 3.6**: According to this analysis, what is the main driver of economic growth? Why?
+
+Based on the above model summary, we can find that the main driver of economic growth is "education" (education). Among all the variables, the coefficient of "education" in model 4 has a very high significance (p < 0.001). Moreover, the coefficient of determination of model 4, R^2, is 0.318, which is the highest among the four models, indicating that model 4 performs best in explaining economic growth.
+
+This means that when we consider the four variables "treat0 revolutions", "rgdp60", "tradeshare", and "education", "education" is the main factor that affects economic growth. Specifically, the coefficient of "education" is 0.564, which means that for every unit increase in education level, economic growth increases by 0.564 units, holding all other variables constant. This result may reflect the important role of education in enhancing human capital, innovation, and productivity, which drive economic growth.
+
+**Question 3.7**: In the code chunk below, edit the table such that the cells (including standard errors) corresponding to the variable `treat` have a red background and white text. Make sure to load the `kableExtra` library beforehand.
+
+```{r}
+library(kableExtra)
+list(model1, model2, model3, model4) |>
+  modelsummary(stars=T, gof_map = c("nobs", "r.squared")) %>%
+  row_spec(row = 2, color = "white", background = "red")
+
+# use functions from modelsummary to edit this table
+```
+
+**Question 3.8**: Write a piece of code that exports this table (without the formatting) to a Word document. 
+
+```{r}
+
+list(model1, model2, model3, model4) |>
+  modelsummary(stars=T, gof_map = c("nobs", "r.squared"), output = "table.docx")
+write.csv(summary_table, file = "C:/Users/惠普/Desktop/summary_table.csv")
+```
+
+## The End
