@@ -160,7 +160,6 @@ list(model1, model2, model3, model4) |>
 
 list(model1, model2, model3, model4) |>
   modelsummary(stars=T, gof_map = c("nobs", "r.squared"), output = "table.docx")
-write.csv(summary_table, file = "C:/Users/惠普/Desktop/summary_table.csv")
 ```
 
 ## The End
