@@ -74,6 +74,8 @@ For the rgdp60 variable, both the mean and median are significantly higher for c
 
 This data suggests that while political instability might be associated with higher average economic growth, the range of growth rates in these countries is narrower. Conversely, countries with no recorded revolutions during this time period demonstrate a wider range of growth rates but lower average growth.
 
+Based on the provided table, the results of the Welch Two Sample t-test suggest that there is not enough evidence to conclude that the true difference in means between group 0 and group more than 0 is significantly different from zero. The p-value of 0.06871 indicates a relatively high chance of observing the observed difference in means under the null hypothesis of no difference. The 95% confidence interval for the difference in means ranges from -0.06182741 to 1.62566475, encompassing zero, further supporting the lack of a significant difference. The mean growth in group 0 is 2.459985, while in group more than 0, it is 1.678066. The median growth rates in countries with more than 0 revolutions are slightly higher compared to countries with 0 revolutions, further supporting the finding that there is a trend of higher growth in the former group.
+
 ### Part 3: Make a table summarizing reressions using modelsummary and kable
 
 In question 2, we have seen that growth rates differ markedly between countries that experienced at least one revolution/episode of political stability and countries that did not. 
